@@ -67,6 +67,22 @@ PNG grayscale(PNG image) {
  * @return The image with a spotlight.
  */
 PNG createSpotlight(PNG image, int centerX, int centerY) {
+  // Given that the coordinates of the upper left corner of the image are (0, 0)
+  // This can be solved in 0(n^2) time with a double for loop. 
+  for (unsigned x = 0; x < image.width(); x++) {
+    for (unsigned y = 0; y < image.height(); y++) {
+      // Need to cast the unsigned values to int as there will be some negative numbers
+      double centerDistance = sqrt((pow(((int)x - centerX), 2) + pow(((int)y - centerY), 2)));
+      HSLAPixel & pixel = image.getPixel(x, y);
+
+      // If further than 160, reduce by 80%
+      if (centerDistance > 160) pixel.l *= 0.2;
+      else {
+        double luminance = 1 - (0.005 * centerDistance);
+        pixel.l *= luminance;
+      }
+    }
+  }
 
   return image;
   
@@ -84,6 +100,20 @@ PNG createSpotlight(PNG image, int centerX, int centerY) {
  * @return The illinify'd image.
 **/
 PNG illinify(PNG image) {
+  // The hue value of orange is 11, and the hue value of blue is 216
+  // Recall that hue is measured from 0-360 degrees
+  for (unsigned x = 0; x < image.width(); x++) {
+    for (unsigned y = 0; y < image.height(); y++) {
+      HSLAPixel & pixel = image.getPixel(x, y);
+
+      // If hue is greater than 216, check if it is closer to 216 or 360+11 degrees
+      if (pixel.h >= 216) {
+        (371 - pixel.h < pixel.h - 216) ? pixel.h = 11 : pixel.h = 216;
+      }
+
+      (pixel.h - 11 < 216 - pixel.h) ? pixel.h = 11 : pixel.h = 216;
+    }
+  }
 
   return image;
 }
@@ -102,6 +132,18 @@ PNG illinify(PNG image) {
 * @return The watermarked image.
 */
 PNG watermark(PNG firstImage, PNG secondImage) {
+
+  for (unsigned x = 0; x < secondImage.width(); x++) {
+    for (unsigned y = 0; y < secondImage.height(); y++) {
+      HSLAPixel & pixelOne = firstImage.getPixel(x, y);
+      HSLAPixel & pixelTwo = secondImage.getPixel(x, y);
+
+      if (pixelTwo.l >= 1) {
+        pixelOne.l += 0.2;
+        if (pixelOne.l > 1) pixelOne.l = 1;
+      }
+    }
+  }
 
   return firstImage;
 }
